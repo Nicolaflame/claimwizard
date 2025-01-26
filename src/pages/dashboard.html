@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClaimWizard Dashboard</title>
+    <!-- Polaris CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@shopify/polaris@11.1.2/build/esm/styles.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        background-color: #f6f6f7;
+      }
+
+      .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 3px;
+        box-shadow: 0 0 0 1px rgba(63, 63, 68, 0.05),
+          0 1px 3px 0 rgba(63, 63, 68, 0.15);
+        padding: 20px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .stat-card {
+        background: #f9fafb;
+        padding: 15px;
+        border-radius: 3px;
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 24px;
+        font-weight: 600;
+        color: #202223;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: #6d7175;
+        font-size: 14px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #e1e3e5;
+      }
+
+      th {
+        background-color: #f9fafb;
+        font-weight: 600;
+        color: #202223;
+      }
+
+      .status-badge {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .status-pending {
+        background-color: #ffd79d;
+        color: #916a00;
+      }
+
+      .status-approved {
+        background-color: #bbe5b3;
+        color: #108043;
+      }
+
+      .status-denied {
+        background-color: #fed3d1;
+        color: #bf0711;
+      }
+
+      .button-primary {
+        background-color: #008060;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .button-primary:hover {
+        background-color: #006e52;
+      }
+
+      .export-button {
+        background-color: white;
+        color: #008060;
+        border: 1px solid #008060;
+        padding: 8px 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .export-button:hover {
+        background-color: rgba(0, 128, 96, 0.05);
+      }
+
+      .export-icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .settings-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        color: #5c5f62;
+        transition: background-color 0.2s;
+      }
+
+      .settings-button:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #202223;
+      }
+
+      .settings-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* Heatmap styles */
+      .claims-recovery {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f9fafb;
+        border-radius: 3px;
+      }
+
+      .recovery-amount {
+        font-size: 28px;
+        font-weight: 600;
+        color: #202223;
+        margin-bottom: 4px;
+      }
+
+      .recovery-label {
+        font-size: 14px;
+        color: #6d7175;
+      }
+
+      .recovery-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .recovery-card {
+        background: white;
+        padding: 16px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .recovery-card.approved {
+        border-left: 4px solid #108043;
+      }
+
+      .recovery-card.paid {
+        border-left: 4px solid #437dcf;
+      }
+
+      .recovery-card.pending {
+        border-left: 4px solid #916a00;
+      }
+
+      .recovery-card.denied {
+        border-left: 4px solid #bf0711;
+      }
+
+      /* Link styles */
+      .order-link {
+        color: #2c6ecb;
+        text-decoration: none;
+      }
+
+      .order-link:hover {
+        text-decoration: underline;
+      }
+
+      /* Amount column styles */
+      .amount {
+        font-family: monospace;
+        text-align: right;
+      }
+
+      /* Filter styles */
+      .filters-container {
+        background: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 3px;
+        box-shadow: 0 0 0 1px rgba(63, 63, 68, 0.05),
+          0 1px 3px 0 rgba(63, 63, 68, 0.15);
+      }
+
+      .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .filter-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #202223;
+      }
+
+      .filter-select {
+        padding: 8px;
+        border: 1px solid #c9cccf;
+        border-radius: 3px;
+        font-size: 14px;
+        color: #202223;
+      }
+
+      .filters-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+        gap: 12px;
+      }
+
+      .button-secondary {
+        background-color: white;
+        color: #008060;
+        border: 1px solid #008060;
+        padding: 10px 20px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .button-secondary:hover {
+        background-color: rgba(0, 128, 96, 0.05);
+      }
+
+      /* Defect Rate styles */
+      .defect-rate {
+        position: relative;
+        padding: 20px;
+        background: white;
+        border-radius: 3px;
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .defect-rate-circle {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: conic-gradient(
+          #008060 calc(var(--percentage) * 1%),
+          #e5e7eb calc(var(--percentage) * 1%)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .defect-rate-inner {
+        width: 100px;
+        height: 100px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .defect-rate-details {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #6d7175;
+      }
+
+      /* Popup styles */
+      .popup-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+
+      .popup-content {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 24px;
+        border-radius: 3px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        z-index: 1001;
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e1e3e5;
+      }
+
+      .popup-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #637381;
+      }
+
+      .popup-close:hover {
+        color: #202223;
+      }
+
+      .claim-details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+
+      .claim-detail-group {
+        margin-bottom: 16px;
+      }
+
+      .claim-detail-label {
+        font-size: 12px;
+        color: #637381;
+        margin-bottom: 4px;
+      }
+
+      .claim-detail-value {
+        font-size: 14px;
+        color: #202223;
+      }
+
+      .claim-photos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .claim-photo {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      /* Filter styles */
+      .date-range-container {
+        display: none;
+        position: absolute;
+        background: white;
+        padding: 16px;
+        border-radius: 3px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        margin-top: 4px;
+      }
+
+      .date-range-container.active {
+        display: block;
+      }
+
+      .date-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .date-label {
+        font-size: 12px;
+        color: #637381;
+        margin-bottom: 4px;
+      }
+
+      .date-input {
+        width: 100%;
+        padding: 6px;
+        border: 1px solid #c9cccf;
+        border-radius: 3px;
+      }
+
+      .date-range-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      /* Add these styles */
+      .sortable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        padding-right: 20px;
+      }
+
+      .sortable::after {
+        content: "↕";
+        position: absolute;
+        right: 5px;
+        color: #637381;
+      }
+
+      .sortable.sort-asc::after {
+        content: "↑";
+        color: #008060;
+      }
+
+      .sortable.sort-desc::after {
+        content: "↓";
+        color: #008060;
+      }
+
+      .trends-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f9fafb;
+        border-radius: 3px;
+      }
+
+      .trends-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .trend-card {
+        background: white;
+        padding: 16px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .trend-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .trend-title {
+        font-weight: 500;
+        color: #202223;
+      }
+
+      .trend-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 500;
+      }
+
+      .trend-arrow {
+        width: 16px;
+        height: 16px;
+      }
+
+      .trend-card.increasing .trend-indicator {
+        color: #bf0711;
+      }
+
+      .trend-card.decreasing .trend-indicator {
+        color: #108043;
+      }
+
+      .trend-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #202223;
+        margin-bottom: 4px;
+      }
+
+      .trend-description {
+        font-size: 12px;
+        color: #6d7175;
+      }
+
+      .insights-section {
+        margin-top: 24px;
+      }
+
+      .insights-list {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .insight-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        background: white;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .insight-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .insight-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .insight-icon.warning {
+        background-color: #fff3d6;
+        color: #916a00;
+      }
+
+      .insight-icon.info {
+        background-color: #e4e9f5;
+        color: #2c6ecb;
+      }
+
+      .insight-icon.success {
+        background-color: #e3f1df;
+        color: #108043;
+      }
+
+      .insight-title {
+        font-weight: 500;
+        color: #202223;
+        margin-bottom: 4px;
+      }
+
+      .insight-description {
+        font-size: 13px;
+        color: #6d7175;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Add popup HTML -->
+    <div class="popup-overlay" id="claimPopup">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h2>Claim Details</h2>
+          <button class="popup-close">&times;</button>
+        </div>
+        <div id="claimDetails"></div>
+      </div>
+    </div>
+
+    <div class="dashboard-container">
+      <div class="header">
+        <h1>ClaimWizard Dashboard</h1>
+        <div class="header-actions">
+          <button class="export-button" onclick="exportToCsv()">
+            <svg class="export-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            Export Claims
+          </button>
+          <button class="button-primary">New Claim</button>
+          <a href="settings.html" class="settings-button" title="Settings">
+            <svg class="settings-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="filters-container">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label class="filter-label">Time Period</label>
+            <select
+              class="filter-select"
+              aria-label="Time Period"
+              onchange="handleTimePeriodChange(this.value)"
+            >
+              <option value="all" selected>All Time</option>
+              <option value="7">Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+              <option value="180">Last 6 Months</option>
+              <option value="365">Last Year</option>
+              <option value="custom">Custom Range</option>
+            </select>
+            <div class="date-range-container" id="dateRangePicker">
+              <div class="date-inputs">
+                <div>
+                  <div class="date-label">Start Date</div>
+                  <input type="date" class="date-input" id="startDate" />
+                </div>
+                <div>
+                  <div class="date-label">End Date</div>
+                  <input type="date" class="date-input" id="endDate" />
+                </div>
+              </div>
+              <div class="date-range-actions">
+                <button class="button-secondary" onclick="cancelDateRange()">
+                  Cancel
+                </button>
+                <button class="button-primary" onclick="applyDateRange()">
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Carrier</label>
+            <select class="filter-select" aria-label="Carrier">
+              <option value="all" selected>All Carriers</option>
+              <option value="ups">UPS</option>
+              <option value="fedex">FEDEX</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Claim Type</label>
+            <select class="filter-select" aria-label="Claim Type">
+              <option value="all" selected>All Types</option>
+              <option value="lost">Lost Package</option>
+              <option value="damaged">Damaged Package</option>
+              <option value="delayed">Delayed Delivery</option>
+              <option value="wrong-address">Wrong Address</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <select class="filter-select" aria-label="Status">
+              <option value="all" selected>All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="denied">Denied</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters-actions">
+          <button class="button-secondary" id="reset-filters">Reset</button>
+          <button class="button-primary" id="apply-filters">
+            Apply Filters
+          </button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Recent Claims</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="id">Claim ID</th>
+                <th class="sortable" data-sort="orderId">Order #</th>
+                <th class="sortable" data-sort="carrier">Carrier</th>
+                <th class="sortable" data-sort="tracking">Tracking #</th>
+                <th class="sortable" data-sort="status">Status</th>
+                <th class="sortable" data-sort="reason">Reason</th>
+                <th class="sortable sort-desc" data-sort="date">Date</th>
+                <th class="sortable" data-sort="amount">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="claimsTableBody">
+              <!-- Claims will be inserted here by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Quick Stats</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number">25</div>
+              <div class="stat-label">Total Claims</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">8</div>
+              <div class="stat-label">Pending Claims</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">15</div>
+              <div class="stat-label">Approved Claims</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">2</div>
+              <div class="stat-label">Denied Claims</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px">
+            <h3>Claims by Carrier</h3>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr">
+              <div class="stat-card">
+                <div class="stat-number">15</div>
+                <div class="stat-label">UPS Claims</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">10</div>
+                <div class="stat-label">FedEX Claims</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="claims-recovery">
+            <h3>Claims Recovery</h3>
+            <div class="recovery-grid">
+              <div class="recovery-card approved">
+                <div class="recovery-amount">$12,450.00</div>
+                <div class="recovery-label">Approved Claims</div>
+              </div>
+              <div class="recovery-card paid">
+                <div class="recovery-amount">$8,925.75</div>
+                <div class="recovery-label">Paid Claims</div>
+              </div>
+              <div class="recovery-card pending">
+                <div class="recovery-amount">$3,524.25</div>
+                <div class="recovery-label">Pending Claims</div>
+              </div>
+              <div class="recovery-card denied">
+                <div class="recovery-amount">$1,875.50</div>
+                <div class="recovery-label">Denied Claims</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="trends-section">
+            <h3>Trends (Last 30 Days)</h3>
+            <div class="trends-grid">
+              <div class="trend-card increasing">
+                <div class="trend-header">
+                  <div class="trend-title">Claims Rate</div>
+                  <div class="trend-indicator">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      class="trend-arrow"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span>12%</span>
+                  </div>
+                </div>
+                <div class="trend-value">2.8% → 3.1%</div>
+                <div class="trend-description">
+                  Compared to previous 30 days
+                </div>
+              </div>
+              <div class="trend-card decreasing">
+                <div class="trend-header">
+                  <div class="trend-title">Recovery Rate</div>
+                  <div class="trend-indicator">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      class="trend-arrow"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span>8%</span>
+                  </div>
+                </div>
+                <div class="trend-value">75% → 69%</div>
+                <div class="trend-description">
+                  Approved claims recovery rate
+                </div>
+              </div>
+            </div>
+
+            <div class="insights-section">
+              <h4>Smart Insights</h4>
+              <div class="insights-list">
+                <div class="insight-item">
+                  <div class="insight-icon warning">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="insight-content">
+                    <div class="insight-title">
+                      High Risk Products Identified
+                    </div>
+                    <div class="insight-description">
+                      Electronics and fragile items show 3x higher claim rates.
+                      Consider reviewing packaging requirements.
+                    </div>
+                  </div>
+                </div>
+                <div class="insight-item">
+                  <div class="insight-icon info">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="insight-content">
+                    <div class="insight-title">Shipping Pattern Analysis</div>
+                    <div class="insight-description">
+                      Most damages occur in transit to FL and TX. Consider using
+                      premium shipping services for these routes.
+                    </div>
+                  </div>
+                </div>
+                <div class="insight-item">
+                  <div class="insight-icon success">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="insight-content">
+                    <div class="insight-title">Successful Practice</div>
+                    <div class="insight-description">
+                      Double-boxing large electronics reduced damage claims by
+                      60%. Consider expanding this practice.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="defect-rate">
+            <h3>Defect Rate</h3>
+            <div class="defect-rate-circle" style="--percentage: 2.8">
+              <div class="defect-rate-inner">2.8%</div>
+            </div>
+            <div class="defect-rate-details">
+              <div>Total Orders: 3,567</div>
+              <div>Claims Filed: 98</div>
+              <div>Period: Last 30 Days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Sample data - in production this would come from your backend
+      const dashboardData = {
+        claims: [
+          {
+            id: "CW24031",
+            orderId: "8675",
+            carrier: "UPS",
+            tracking: "1Z999AA1234567890",
+            status: "approved",
+            reason: "Lost Package",
+            date: "2024-03-15",
+            amount: 245.99,
+            recipient: {
+              name: "John Smith",
+              address: "123 Main St",
+              city: "Boston",
+              state: "MA",
+              zip: "02108",
+            },
+          },
+          {
+            id: "CW24030",
+            orderId: "8672",
+            carrier: "FEDEX",
+            tracking: "794644543973",
+            status: "pending",
+            reason: "Damaged Package",
+            date: "2024-03-10",
+            amount: 189.5,
+            recipient: {
+              name: "Sarah Johnson",
+              address: "456 Oak Ave",
+              city: "Chicago",
+              state: "IL",
+              zip: "60601",
+            },
+          },
+          {
+            id: "CW24029",
+            orderId: "8669",
+            carrier: "UPS",
+            tracking: "1Z999BB9876543210",
+            status: "denied",
+            reason: "Wrong Address",
+            date: "2024-02-28",
+            amount: 156.75,
+            recipient: {
+              name: "Mike Wilson",
+              address: "789 Pine St",
+              city: "Seattle",
+              state: "WA",
+              zip: "98101",
+            },
+          },
+          {
+            id: "CW23128",
+            orderId: "8532",
+            carrier: "FEDEX",
+            tracking: "794644543123",
+            status: "approved",
+            reason: "Lost Package",
+            date: "2023-12-15",
+            amount: 342.0,
+            recipient: {
+              name: "Emily Brown",
+              address: "321 Elm St",
+              city: "Denver",
+              state: "CO",
+              zip: "80202",
+            },
+          },
+          {
+            id: "CW23095",
+            orderId: "8123",
+            carrier: "UPS",
+            tracking: "1Z999CC5555555555",
+            status: "approved",
+            reason: "Damaged Package",
+            date: "2023-09-20",
+            amount: 89.99,
+            recipient: {
+              name: "David Lee",
+              address: "555 Maple Dr",
+              city: "Austin",
+              state: "TX",
+              zip: "78701",
+            },
+          },
+          {
+            id: "CW23045",
+            orderId: "7845",
+            carrier: "FEDEX",
+            tracking: "794644541111",
+            status: "denied",
+            reason: "Late Claim Filing",
+            date: "2023-04-15",
+            amount: 275.5,
+            recipient: {
+              name: "Lisa Martinez",
+              address: "888 Cedar Ln",
+              city: "Miami",
+              state: "FL",
+              zip: "33101",
+            },
+          },
+          {
+            id: "CW22089",
+            orderId: "7234",
+            carrier: "UPS",
+            tracking: "1Z999DD4444444444",
+            status: "approved",
+            reason: "Lost Package",
+            date: "2022-08-30",
+            amount: 199.99,
+            recipient: {
+              name: "Tom Anderson",
+              address: "444 Birch St",
+              city: "Portland",
+              state: "OR",
+              zip: "97201",
+            },
+          },
+          {
+            id: "CW21056",
+            orderId: "6543",
+            carrier: "FEDEX",
+            tracking: "794644540000",
+            status: "approved",
+            reason: "Damaged Package",
+            date: "2021-05-12",
+            amount: 445.0,
+            recipient: {
+              name: "Rachel Green",
+              address: "777 Oak St",
+              city: "San Francisco",
+              state: "CA",
+              zip: "94105",
+            },
+          },
+          {
+            id: "CW20023",
+            orderId: "5678",
+            carrier: "UPS",
+            tracking: "1Z999EE3333333333",
+            status: "approved",
+            reason: "Lost Package",
+            date: "2020-03-25",
+            amount: 159.99,
+            recipient: {
+              name: "Chris Taylor",
+              address: "999 Pine Ave",
+              city: "New York",
+              state: "NY",
+              zip: "10001",
+            },
+          },
+          {
+            id: "CW25042",
+            orderId: "9125",
+            carrier: "UPS",
+            tracking: "1Z999FF2222222222",
+            status: "pending",
+            reason: "Lost Package",
+            date: "2025-08-15",
+            amount: 299.99,
+            recipient: {
+              name: "Alex Rivera",
+              address: "567 Beach Blvd",
+              city: "San Diego",
+              state: "CA",
+              zip: "92101",
+            },
+          },
+          {
+            id: "CW25035",
+            orderId: "9089",
+            carrier: "FEDEX",
+            tracking: "794644546666",
+            status: "approved",
+            reason: "Damaged Package",
+            date: "2025-06-22",
+            amount: 178.5,
+            recipient: {
+              name: "Jennifer White",
+              address: "234 Lake Ave",
+              city: "Minneapolis",
+              state: "MN",
+              zip: "55401",
+            },
+          },
+          {
+            id: "CW25028",
+            orderId: "9056",
+            carrier: "UPS",
+            tracking: "1Z999GG1111111111",
+            status: "denied",
+            reason: "Wrong Address",
+            date: "2025-05-03",
+            amount: 423.75,
+            recipient: {
+              name: "Robert Chen",
+              address: "890 River Rd",
+              city: "Phoenix",
+              state: "AZ",
+              zip: "85001",
+            },
+          },
+          {
+            id: "CW25015",
+            orderId: "8998",
+            carrier: "FEDEX",
+            tracking: "794644545555",
+            status: "approved",
+            reason: "Lost Package",
+            date: "2025-03-18",
+            amount: 567.0,
+            recipient: {
+              name: "Maria Garcia",
+              address: "123 Mountain View",
+              city: "Las Vegas",
+              state: "NV",
+              zip: "89101",
+            },
+          },
+          {
+            id: "CW25008",
+            orderId: "8956",
+            carrier: "UPS",
+            tracking: "1Z999HH0000000000",
+            status: "pending",
+            reason: "Damaged Package",
+            date: "2025-01-05",
+            amount: 129.99,
+            recipient: {
+              name: "James Wilson",
+              address: "456 Valley Dr",
+              city: "Dallas",
+              state: "TX",
+              zip: "75201",
+            },
+          },
+        ],
+        totalOrders: 3567,
+      };
+
+      // Function to format currency
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(amount);
+      };
+
+      // Add these variables at the top of your script
+      let customStartDate = null;
+      let customEndDate = null;
+      let currentSort = {
+        column: "date",
+        direction: "desc",
+      };
+
+      function handleTimePeriodChange(value) {
+        const dateRangePicker = document.getElementById("dateRangePicker");
+        if (value === "custom") {
+          dateRangePicker.classList.add("active");
+          // Set default dates if none selected
+          if (!customStartDate || !customEndDate) {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+
+            document.getElementById("startDate").value = thirtyDaysAgo
+              .toISOString()
+              .split("T")[0];
+            document.getElementById("endDate").value = today
+              .toISOString()
+              .split("T")[0];
+          }
+        } else {
+          dateRangePicker.classList.remove("active");
+        }
+      }
+
+      function cancelDateRange() {
+        document.getElementById("dateRangePicker").classList.remove("active");
+        document.querySelector('select[aria-label="Time Period"]').value =
+          "all";
+      }
+
+      function applyDateRange() {
+        customStartDate = document.getElementById("startDate").value;
+        customEndDate = document.getElementById("endDate").value;
+        document.getElementById("dateRangePicker").classList.remove("active");
+        updateDashboard();
+      }
+
+      // Function to sort claims
+      function sortClaims(claims, column, direction) {
+        return [...claims].sort((a, b) => {
+          let valueA = a[column];
+          let valueB = b[column];
+
+          // Special handling for different data types
+          if (column === "amount") {
+            valueA = parseFloat(valueA);
+            valueB = parseFloat(valueB);
+          } else if (column === "date") {
+            valueA = new Date(valueA);
+            valueB = new Date(valueB);
+          } else if (column === "id" || column === "orderId") {
+            // Strip the prefix for numerical sorting
+            valueA = parseInt(valueA.replace(/\D/g, ""));
+            valueB = parseInt(valueB.replace(/\D/g, ""));
+          }
+
+          if (direction === "asc") {
+            return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+          } else {
+            return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+          }
+        });
+      }
+
+      // Function to handle header clicks
+      function handleHeaderClick(e) {
+        const th = e.target.closest("th");
+        if (!th || !th.classList.contains("sortable")) return;
+
+        const column = th.dataset.sort;
+        const direction =
+          currentSort.column === column && currentSort.direction === "desc"
+            ? "asc"
+            : "desc";
+
+        // Update sort indicators
+        document.querySelectorAll("th.sortable").forEach((header) => {
+          header.classList.remove("sort-asc", "sort-desc");
+        });
+        th.classList.add(`sort-${direction}`);
+
+        // Update current sort
+        currentSort = { column, direction };
+
+        // Update dashboard with new sort
+        updateDashboard();
+      }
+
+      // Function to filter claims based on selected filters
+      function filterClaims() {
+        const timePeriod = document.querySelector(
+          'select[aria-label="Time Period"]'
+        ).value;
+        const carrier = document.querySelector(
+          'select[aria-label="Carrier"]'
+        ).value;
+        const claimType = document.querySelector(
+          'select[aria-label="Claim Type"]'
+        ).value;
+        const status = document.querySelector(
+          'select[aria-label="Status"]'
+        ).value;
+
+        return dashboardData.claims.filter((claim) => {
+          const matchesCarrier =
+            carrier === "all" ||
+            claim.carrier.toLowerCase() === carrier.toLowerCase();
+          const matchesStatus =
+            status === "all" ||
+            claim.status.toLowerCase() === status.toLowerCase();
+          const matchesType =
+            claimType === "all" ||
+            claim.reason.toLowerCase().includes(claimType.replace("-", " "));
+
+          // Enhanced time period filtering
+          const claimDate = new Date(claim.date);
+          let matchesTime = true;
+
+          if (timePeriod !== "all") {
+            if (timePeriod === "custom") {
+              if (customStartDate && customEndDate) {
+                const start = new Date(customStartDate);
+                const end = new Date(customEndDate);
+                end.setHours(23, 59, 59); // Include the entire end date
+                matchesTime = claimDate >= start && claimDate <= end;
+              }
+            } else {
+              const now = new Date();
+              const daysDiff = Math.floor(
+                (now - claimDate) / (1000 * 60 * 60 * 24)
+              );
+              matchesTime = daysDiff <= parseInt(timePeriod);
+            }
+          }
+
+          return matchesCarrier && matchesStatus && matchesType && matchesTime;
+        });
+      }
+
+      // Function to update the dashboard with filtered data
+      function updateDashboard() {
+        const filteredClaims = filterClaims();
+        // Sort the filtered claims
+        const sortedClaims = sortClaims(
+          filteredClaims,
+          currentSort.column,
+          currentSort.direction
+        );
+
+        // Update claims table
+        const tbody = document.getElementById("claimsTableBody");
+        const tableRows = sortedClaims
+          .map(
+            (claim) => `
+            <tr>
+              <td><a href="#" onclick="showClaimPopup('${
+                claim.id
+              }'); return false;" class="order-link">#${claim.id}</a></td>
+              <td><a href="https://admin.shopify.com/store/your-store/orders/${
+                claim.orderId
+              }" class="order-link" target="_blank">#${claim.orderId}</a></td>
+              <td>${claim.carrier}</td>
+              <td><a href="${
+                claim.carrier === "UPS"
+                  ? `https://www.ups.com/track?tracknum=${claim.tracking}`
+                  : `https://www.fedex.com/fedextrack/?trknbr=${claim.tracking}`
+              }" class="order-link" target="_blank">${claim.tracking}</a></td>
+              <td><span class="status-badge status-${claim.status.toLowerCase()}">${
+              claim.status.charAt(0).toUpperCase() + claim.status.slice(1)
+            }</span></td>
+              <td>${claim.reason}</td>
+              <td>${new Date(claim.date).toLocaleDateString()}</td>
+              <td class="amount">${formatCurrency(claim.amount)}</td>
+            </tr>
+          `
+          )
+          .join("");
+        tbody.innerHTML = tableRows;
+
+        // Update Quick Stats
+        const totalClaims = filteredClaims.length;
+        const pendingClaims = filteredClaims.filter(
+          (c) => c.status === "pending"
+        ).length;
+        const approvedClaims = filteredClaims.filter(
+          (c) => c.status === "approved"
+        ).length;
+        const deniedClaims = filteredClaims.filter(
+          (c) => c.status === "denied"
+        ).length;
+
+        document
+          .querySelectorAll(".stats-grid:first-of-type .stat-number")
+          .forEach((stat, index) => {
+            switch (index) {
+              case 0:
+                stat.textContent = totalClaims;
+                break;
+              case 1:
+                stat.textContent = pendingClaims;
+                break;
+              case 2:
+                stat.textContent = approvedClaims;
+                break;
+              case 3:
+                stat.textContent = deniedClaims;
+                break;
+            }
+          });
+
+        // Update Claims by Carrier
+        const upsClaims = filteredClaims.filter(
+          (c) => c.carrier === "UPS"
+        ).length;
+        const fedexClaims = filteredClaims.filter(
+          (c) => c.carrier === "FEDEX"
+        ).length;
+        document
+          .querySelectorAll(".stats-grid:last-of-type .stat-number")
+          .forEach((stat, index) => {
+            stat.textContent = index === 0 ? upsClaims : fedexClaims;
+          });
+
+        // Update Claims Recovery amounts
+        const approvedAmount = filteredClaims
+          .filter((c) => c.status === "approved")
+          .reduce((sum, claim) => sum + claim.amount, 0);
+        const pendingAmount = filteredClaims
+          .filter((c) => c.status === "pending")
+          .reduce((sum, claim) => sum + claim.amount, 0);
+        const deniedAmount = filteredClaims
+          .filter((c) => c.status === "denied")
+          .reduce((sum, claim) => sum + claim.amount, 0);
+
+        document
+          .querySelectorAll(".recovery-amount")
+          .forEach((amount, index) => {
+            switch (index) {
+              case 0:
+                amount.textContent = formatCurrency(approvedAmount);
+                break;
+              case 1:
+                amount.textContent = formatCurrency(approvedAmount * 0.7);
+                break; // Paid amount (example)
+              case 2:
+                amount.textContent = formatCurrency(pendingAmount);
+                break;
+              case 3:
+                amount.textContent = formatCurrency(deniedAmount);
+                break;
+            }
+          });
+
+        // Update Defect Rate
+        const defectRate = (totalClaims / dashboardData.totalOrders) * 100;
+        const defectRateCircle = document.querySelector(".defect-rate-circle");
+        const defectRateInner = document.querySelector(".defect-rate-inner");
+        defectRateCircle.style.setProperty("--percentage", defectRate);
+        defectRateInner.textContent = `${defectRate.toFixed(1)}%`;
+
+        document.querySelector(".defect-rate-details").innerHTML = `
+          <div>Total Orders: ${dashboardData.totalOrders.toLocaleString()}</div>
+          <div>Claims Filed: ${totalClaims}</div>
+          <div>Period: ${
+            document.querySelector(
+              'select[aria-label="Time Period"] option:checked'
+            ).text
+          }</div>
+        `;
+      }
+
+      // Function to reset filters to default values
+      function resetFilters() {
+        document.querySelectorAll(".filter-select").forEach((select) => {
+          const defaultOption = select.querySelector("option[selected]");
+          if (defaultOption) {
+            select.value = defaultOption.value;
+          }
+        });
+      }
+
+      // Add event listeners for the buttons
+      document.getElementById("apply-filters").addEventListener("click", () => {
+        updateDashboard();
+
+        // Optional: Show success message
+        const button = document.getElementById("apply-filters");
+        const originalText = button.textContent;
+        button.textContent = "Filters Applied";
+        button.disabled = true;
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 1500);
+      });
+
+      document.getElementById("reset-filters").addEventListener("click", () => {
+        resetFilters();
+        updateDashboard();
+
+        // Optional: Show success message
+        const button = document.getElementById("reset-filters");
+        const originalText = button.textContent;
+        button.textContent = "Filters Reset";
+        button.disabled = true;
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 1500);
+      });
+
+      // Initialize dashboard immediately
+      // Set initial sort to date descending
+      currentSort = { column: "date", direction: "desc" };
+      updateDashboard();
+
+      // Function to show claim popup
+      function showClaimPopup(claimId) {
+        const claim = dashboardData.claims.find((c) => c.id === claimId);
+        const popup = document.getElementById("claimPopup");
+        const detailsContainer = document.getElementById("claimDetails");
+
+        let carrierSpecificFields = "";
+        if (claim.carrier === "UPS") {
+          carrierSpecificFields = `
+            <div class="claim-detail-group">
+              <div class="claim-detail-label">Investigation Number</div>
+              <div class="claim-detail-value">${claim.additionalDetails.investigationNumber}</div>
+            </div>
+            <div class="claim-detail-group">
+              <div class="claim-detail-label">Last Scan Location</div>
+              <div class="claim-detail-value">${claim.additionalDetails.lastScanLocation}</div>
+            </div>
+          `;
+        } else if (claim.carrier === "FEDEX") {
+          carrierSpecificFields = `
+            <div class="claim-detail-group">
+              <div class="claim-detail-label">Case Number</div>
+              <div class="claim-detail-value">${claim.additionalDetails.caseNumber}</div>
+            </div>
+            <div class="claim-detail-group">
+              <div class="claim-detail-label">Service Commitment</div>
+              <div class="claim-detail-value">${claim.additionalDetails.serviceCommitment}</div>
+            </div>
+          `;
+        }
+
+        detailsContainer.innerHTML = `
+          <div class="claim-details-grid">
+            <div>
+              <h3>Recipient Information</h3>
+              <div class="claim-detail-group">
+                <div class="claim-detail-label">Name</div>
+                <div class="claim-detail-value">${claim.recipient.name}</div>
+              </div>
+              <div class="claim-detail-group">
+                <div class="claim-detail-label">Address</div>
+                <div class="claim-detail-value">
+                  ${claim.recipient.address}<br>
+                  ${claim.recipient.city}, ${claim.recipient.state} ${
+          claim.recipient.zip
+        }
+                </div>
+              </div>
+              <div class="claim-detail-group">
+                <div class="claim-detail-label">Contact</div>
+                <div class="claim-detail-value">
+                  ${claim.recipient.phone}<br>
+                  ${claim.recipient.email}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3>Shipment Details</h3>
+              <div class="claim-detail-group">
+                <div class="claim-detail-label">Tracking Number</div>
+                <div class="claim-detail-value">${claim.tracking}</div>
+              </div>
+              <div class="claim-detail-group">
+                <div class="claim-detail-label">Package Details</div>
+                <div class="claim-detail-value">
+                  Weight: ${claim.shipmentDetails.weight}<br>
+                  Dimensions: ${claim.shipmentDetails.dimensions}
+                </div>
+              </div>
+              ${carrierSpecificFields}
+            </div>
+          </div>
+
+          <h3>Claim Photos</h3>
+          <div class="claim-photos">
+            ${claim.photos
+              .map(
+                (photo) => `
+              <img src="${photo}" alt="Claim photo" class="claim-photo">
+            `
+              )
+              .join("")}
+          </div>
+        `;
+
+        popup.style.display = "block";
+      }
+
+      // Function to close popup
+      function closeClaimPopup() {
+        document.getElementById("claimPopup").style.display = "none";
+      }
+
+      // Add event listeners for popup
+      document
+        .querySelector(".popup-close")
+        .addEventListener("click", closeClaimPopup);
+      document
+        .querySelector(".popup-overlay")
+        .addEventListener("click", (e) => {
+          if (e.target === document.querySelector(".popup-overlay")) {
+            closeClaimPopup();
+          }
+        });
+
+      // Function to export claims to CSV
+      function exportToCsv() {
+        // Get the filtered claims
+        const filteredClaims = filterClaims();
+
+        // Define CSV headers
+        const headers = [
+          "Claim ID",
+          "Order #",
+          "Carrier",
+          "Tracking #",
+          "Status",
+          "Reason",
+          "Date",
+          "Amount",
+          "Recipient Name",
+          "Recipient Address",
+          "Package Weight",
+          "Package Dimensions",
+        ];
+
+        // Convert claims to CSV rows
+        const csvRows = [
+          headers,
+          ...filteredClaims.map((claim) => [
+            claim.id,
+            claim.orderId,
+            claim.carrier,
+            claim.tracking,
+            claim.status,
+            claim.reason,
+            claim.date,
+            claim.amount,
+            claim.recipient?.name || "",
+            `${claim.recipient?.address || ""}, ${
+              claim.recipient?.city || ""
+            }, ${claim.recipient?.state || ""} ${claim.recipient?.zip || ""}`,
+            claim.shipmentDetails?.weight || "",
+            claim.shipmentDetails?.dimensions || "",
+          ]),
+        ];
+
+        // Convert to CSV string
+        const csvContent = csvRows
+          .map((row) =>
+            row
+              .map((cell) =>
+                typeof cell === "string" && cell.includes(",")
+                  ? `"${cell.replace(/"/g, '""')}"`
+                  : String(cell)
+              )
+              .join(",")
+          )
+          .join("\n");
+
+        // Create a Blob with the CSV content
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+
+        // Create a link element
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = "claims.csv";
+        link.click();
+
+        // Clean up
+        URL.revokeObjectURL(url);
+      }
+
+      // Add click outside handler to close date picker
+      document.addEventListener("click", function (event) {
+        const dateRangePicker = document.getElementById("dateRangePicker");
+        const timePeriodSelect = document.querySelector(
+          'select[aria-label="Time Period"]'
+        );
+
+        if (
+          !dateRangePicker.contains(event.target) &&
+          !timePeriodSelect.contains(event.target) &&
+          dateRangePicker.classList.contains("active")
+        ) {
+          cancelDateRange();
+        }
+      });
+
+      // Add click listener to table headers
+      document
+        .querySelector("thead")
+        .addEventListener("click", handleHeaderClick);
+    </script>
+  </body>
+</html>

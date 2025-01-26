@@ -1,0 +1,26 @@
+.Polaris-Page {
+  margin: 0;
+  padding: 2rem;
+}
+
+.claim-form {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.claim-form .Polaris-TextField,
+.claim-form .Polaris-Select {
+  margin-bottom: 1rem;
+}
+
+.claim-form .Polaris-Button {
+  margin-top: 2rem;
+}
+
+.stats-card {
+  height: 100%;
+}
+
+.stats-card .Polaris-Card__Section {
+  padding: 1rem;
+}
