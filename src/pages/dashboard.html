@@ -736,7 +736,7 @@
 
       <div class="grid">
         <div class="card">
-          <h2>Recent Claims</h2>
+          <h1>Recent Claims</h1>
           <table>
             <thead>
               <tr>
@@ -751,7 +751,45 @@
               </tr>
             </thead>
             <tbody id="claimsTableBody">
-              <!-- Claims will be inserted here by JavaScript -->
+              <!-- {% for claim in claims %} -->
+              <tr>
+                <td>
+                  <a
+                    href="#"
+                    onclick="showClaimPopup('{{ claim.id }}'); return false;"
+                    class="order-link"
+                    >#{{ claim.id }}</a
+                  >
+                </td>
+                <td>
+                  <a
+                    href="https://admin.shopify.com/store/your-store/orders/{{ claim.orderId }}"
+                    class="order-link"
+                    target="_blank"
+                    >#{{ claim.orderId }}</a
+                  >
+                </td>
+                <td>{{ claim.carrier }}</td>
+                <td>
+                  <a
+                    href="{{ claim.carrier === 'UPS' ? 'https://www.ups.com/track?tracknum=' + claim.tracking : 'https://www.fedex.com/fedextrack/?trknbr=' + claim.tracking }}"
+                    class="order-link"
+                    target="_blank"
+                    >{{ claim.tracking }}</a
+                  >
+                </td>
+                <td>
+                  <span
+                    class="status-badge status-{{ claim.status.toLowerCase() }}"
+                    >{{ claim.status.charAt(0).toUpperCase() +
+                    claim.status.slice(1) }}</span
+                  >
+                </td>
+                <td>{{ claim.reason }}</td>
+                <td>{{ claim.date | date }}</td>
+                <td class="amount">{{ claim.amount | currency }}</td>
+              </tr>
+              <!-- {% endfor %} -->
             </tbody>
           </table>
         </div>
@@ -760,19 +798,19 @@
           <h2>Quick Stats</h2>
           <div class="stats-grid">
             <div class="stat-card">
-              <div class="stat-number">25</div>
+              <div class="stat-number">{{ totalClaims }}</div>
               <div class="stat-label">Total Claims</div>
             </div>
             <div class="stat-card">
-              <div class="stat-number">8</div>
+              <div class="stat-number">{{ pendingClaims }}</div>
               <div class="stat-label">Pending Claims</div>
             </div>
             <div class="stat-card">
-              <div class="stat-number">15</div>
+              <div class="stat-number">{{ approvedClaims }}</div>
               <div class="stat-label">Approved Claims</div>
             </div>
             <div class="stat-card">
-              <div class="stat-number">2</div>
+              <div class="stat-number">{{ deniedClaims }}</div>
               <div class="stat-label">Denied Claims</div>
             </div>
           </div>
@@ -781,11 +819,11 @@
             <h3>Claims by Carrier</h3>
             <div class="stats-grid" style="grid-template-columns: 1fr 1fr">
               <div class="stat-card">
-                <div class="stat-number">15</div>
+                <div class="stat-number">{{ upsClaims }}</div>
                 <div class="stat-label">UPS Claims</div>
               </div>
               <div class="stat-card">
-                <div class="stat-number">10</div>
+                <div class="stat-number">{{ fedexClaims }}</div>
                 <div class="stat-label">FedEX Claims</div>
               </div>
             </div>
@@ -795,19 +833,25 @@
             <h3>Claims Recovery</h3>
             <div class="recovery-grid">
               <div class="recovery-card approved">
-                <div class="recovery-amount">$12,450.00</div>
+                <div class="recovery-amount">
+                  {{ approvedAmount | currency }}
+                </div>
                 <div class="recovery-label">Approved Claims</div>
               </div>
               <div class="recovery-card paid">
-                <div class="recovery-amount">$8,925.75</div>
+                <div class="recovery-amount">
+                  {{ approvedAmount * 0.7 | currency }}
+                </div>
                 <div class="recovery-label">Paid Claims</div>
               </div>
               <div class="recovery-card pending">
-                <div class="recovery-amount">$3,524.25</div>
+                <div class="recovery-amount">
+                  {{ pendingAmount | currency }}
+                </div>
                 <div class="recovery-label">Pending Claims</div>
               </div>
               <div class="recovery-card denied">
-                <div class="recovery-amount">$1,875.50</div>
+                <div class="recovery-amount">{{ deniedAmount | currency }}</div>
                 <div class="recovery-label">Denied Claims</div>
               </div>
             </div>
@@ -929,13 +973,19 @@
 
           <div class="defect-rate">
             <h3>Defect Rate</h3>
-            <div class="defect-rate-circle" style="--percentage: 2.8">
-              <div class="defect-rate-inner">2.8%</div>
+            <div
+              class="defect-rate-circle"
+              style="--percentage: {{ defectRate }}"
+            >
+              <div class="defect-rate-inner">{{ defectRate.toFixed(1) }}%</div>
             </div>
             <div class="defect-rate-details">
-              <div>Total Orders: 3,567</div>
-              <div>Claims Filed: 98</div>
-              <div>Period: Last 30 Days</div>
+              <div>Total Orders: {{ totalOrders.toLocaleString() }}</div>
+              <div>Claims Filed: {{ totalClaims }}</div>
+              <div>
+                Period: {{ document.querySelector('select[aria-label="Time
+                Period"] option:checked').text }}
+              </div>
             </div>
           </div>
         </div>
@@ -1641,10 +1691,6 @@
           "Reason",
           "Date",
           "Amount",
-          "Recipient Name",
-          "Recipient Address",
-          "Package Weight",
-          "Package Dimensions",
         ];
 
         // Convert claims to CSV rows
@@ -1659,12 +1705,6 @@
             claim.reason,
             claim.date,
             claim.amount,
-            claim.recipient?.name || "",
-            `${claim.recipient?.address || ""}, ${
-              claim.recipient?.city || ""
-            }, ${claim.recipient?.state || ""} ${claim.recipient?.zip || ""}`,
-            claim.shipmentDetails?.weight || "",
-            claim.shipmentDetails?.dimensions || "",
           ]),
         ];
 
